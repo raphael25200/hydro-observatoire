@@ -1,0 +1,12 @@
+# Environnement virtuel Python (régénérable avec pip install -r requirements.txt)
+venv/
+__pycache__/
+*.pyc
+
+# Instantanés de données journalières : obsolètes rapidement, à régénérer via l'API
+# (voir la commande dans le docstring d'analyse.py)
+jour_debut.csv
+jour_fin.csv
+
+# Fichiers de vérification ponctuels (débogage)
+verif_*.csv
