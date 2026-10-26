@@ -52,6 +52,15 @@ df_debut = df_debut[df_debut["resultat_obs_elab"] >= 0]
 print(f"{(df_fin['resultat_obs_elab'] < 0).sum()} lignes négatives supprimées (fin)")
 df_fin = df_fin[df_fin["resultat_obs_elab"] >= 0]
 
+# --- Mesures douteuses, incertaines ou mauvaises : exclues (comme dans dashboard.html) ---
+QUALIF_EXCLUES = "douteuse|incertaine|mauvaise"
+q_debut = df_debut["libelle_qualification"].fillna("").str.contains(QUALIF_EXCLUES, case=False)
+print(f"{q_debut.sum()} mesures douteuses/incertaines exclues (début)")
+df_debut = df_debut[~q_debut]
+q_fin = df_fin["libelle_qualification"].fillna("").str.contains(QUALIF_EXCLUES, case=False)
+print(f"{q_fin.sum()} mesures douteuses/incertaines exclues (fin)")
+df_fin = df_fin[~q_fin]
+
 # --- Résumé rapide sur le fichier de fin ---
 print()
 print("=== Aperçu (fichier fin) ===")
@@ -92,6 +101,11 @@ print()
 df_ref = pd.read_csv("toutes_stations.csv", sep=";")
 df_ref = df_ref[["code_station", "libelle_cours_eau", "libelle_commune", "latitude_station", "longitude_station"]]
 df_ref = df_ref.dropna(subset=["latitude_station", "longitude_station"])
+
+# Stations calculables mais absentes du référentiel : elles n'apparaîtront pas dans le top 10
+n_hors_ref = (~resultats_valides["code_station"].isin(df_ref["code_station"])).sum()
+print(f"{n_hors_ref} stations calculables absentes du référentiel (sans nom de cours d'eau)")
+print()
 
 # --- Top 10 des plus fortes baisses, enrichi avec le nom de la rivière ---
 print("=== Top baisses ===")
