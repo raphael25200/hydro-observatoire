@@ -209,6 +209,24 @@
 			font-weight: 600;
 			white-space: nowrap;
 		}
+		.map-hint {
+			position: absolute;
+			right: 12px;
+			bottom: 28px;
+			z-index: 1000;
+			padding: 6px 12px;
+			background: rgba(20, 33, 31, 0.82);
+			color: #fff;
+			border-radius: 999px;
+			font-family: var(--sans);
+			font-size: 12px;
+			pointer-events: none;
+			opacity: 0;
+			transition: opacity 0.2s;
+		}
+		.map-hint.visible {
+			opacity: 1;
+		}
 		#search {
 			width: 100%;
 			padding: 7px 10px;
@@ -521,7 +539,8 @@ function initMap() {
 map = L.map('map', {
 minZoom: 5,
 maxBounds: [[40.0, -7.5], [52.5, 11.5]],
-maxBoundsViscosity: 1.0
+maxBoundsViscosity: 1.0,
+scrollWheelZoom: false
 }).setView([
 46.6, 2.5
 ], 6);
@@ -530,6 +549,30 @@ attribution: '&copy; OpenStreetMap contributors',
 maxZoom: 18
 }).addTo(map);
 layerGroup = L.layerGroup().addTo(map);
+
+// La molette fait défiler la page ; Ctrl + molette (ou pincement) zoome la carte.
+const mapEl = map.getContainer();
+const hint = document.createElement('div');
+hint.className = 'map-hint';
+hint.setAttribute('role', 'status');
+hint.textContent = 'Ctrl + molette pour zoomer';
+mapEl.appendChild(hint);
+let hintTimer = null,
+lastWheelZoom = 0;
+mapEl.addEventListener('wheel', (e) => {
+if (e.ctrlKey || e.metaKey) {
+e.preventDefault();
+const now = Date.now();
+if (now - lastWheelZoom > 250) {
+map.setZoom(map.getZoom() + (e.deltaY < 0 ? 1 : -1));
+lastWheelZoom = now;
+}
+return;
+}
+hint.classList.add('visible');
+clearTimeout(hintTimer);
+hintTimer = setTimeout(() => hint.classList.remove('visible'), 1200);
+}, {passive: false});
 }
 
 // Dégradé bordeaux -> ambre pour les baisses ; vert fixe si stable/hausse.
