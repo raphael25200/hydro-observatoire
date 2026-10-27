@@ -196,6 +196,19 @@
 			color: #15803d;
 			font-weight: 600;
 		}
+		.flag {
+			display: inline-block;
+			margin-top: 2px;
+			padding: 1px 6px;
+			border: 1px solid #f0c27b;
+			border-radius: 999px;
+			background: #fff1dc;
+			color: #7a3e00;
+			font-family: var(--sans);
+			font-size: 0.65rem;
+			font-weight: 600;
+			white-space: nowrap;
+		}
 		#search {
 			width: 100%;
 			padding: 7px 10px;
@@ -628,7 +641,9 @@ variation,
 riviere: ref.libelle_cours_eau || "Cours d'eau inconnu",
 commune: ref.libelle_commune || "",
 lat: ref.latitude_station,
-lon: ref.longitude_station
+lon: ref.longitude_station,
+// Débit nul le jour de fin mais mesure non qualifiée par Hub'Eau : à signaler, pas à exclure
+nulNonValide: last === 0 && /non qualifi/i.test(f.libelle_qualification || "")
 });
 });
 
@@ -707,7 +722,7 @@ r.first.toLocaleString('fr-FR')
 r.last.toLocaleString('fr-FR')
 } L/s<br>` + `Variation : <b>${
 r.variation.toFixed(1)
-}%</b><br>` + `<i>Clic pour ${
+}%</b><br>` + (r.nulNonValide ? '<span class="flag">Débit nul non validé</span><br>' : "") + `<i>Clic pour ${
 isSel ? "désélectionner" : "sélectionner"
 }</i>`, {
 className: "station-tip",
@@ -769,7 +784,9 @@ r.commune
 r.variation >= 0 ? "+" : ""
 }${
 r.variation.toFixed(1)
-}%</td>
+}%${
+r.nulNonValide ? '<br><span class="flag" title="Débit du jour de fin à 0 L/s, mesure non qualifiée par Hub\'Eau : à vérifier avant toute interprétation">Débit nul non validé</span>' : ""
+}</td>
       <td class="name" style="white-space:nowrap; font-size:12px;"><a href="https://www.vigicrues.gouv.fr/station/${
 r.code
 }" target="_blank" rel="noopener" title="Voir la station sur Vigicrues">Vigicrues</a> · <a href="https://www.hydro.eaufrance.fr/stationhydro/${
