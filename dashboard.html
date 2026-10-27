@@ -505,7 +505,12 @@ document.getElementById("status").textContent = msg;
 }
 
 function initMap() {
-map = L.map('map').setView([
+// Données limitées à la France : pas de dézoom sur le monde, la vue reste autour du territoire.
+map = L.map('map', {
+minZoom: 5,
+maxBounds: [[40.0, -7.5], [52.5, 11.5]],
+maxBoundsViscosity: 1.0
+}).setView([
 46.6, 2.5
 ], 6);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
