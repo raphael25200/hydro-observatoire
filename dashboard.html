@@ -4,26 +4,30 @@
 		<meta charset="UTF-8">
 		<title>Niveaux des rivières — Observatoire</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="Variation du débit des cours d'eau français, d'après les données Hub'Eau.">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&display=swap">
 		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 		<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 		<script src="stations_ref.js"></script>
-		<style>:root
-		{
-			--ink: #0f2027;
-			--paper: #f2f5f4;
+		<style>
+		:root {
+			--ink: #14211f;
+			--paper: #fbfbf9;
 			--panel: #ffffff;
-			--line: #d8e0de;
-			--teal: #0e7c7b;
-			--teal-dark: #0a5958;
-			--amber: #fbbf24;
+			--line: #dfe6e3;
+			--line-strong: #b9c6c2;
+			--teal: #0f766e;
+			--teal-dark: #0a5c56;
+			--teal-tint: #eaf5f3;
 			--slate: #5b6b68;
-			--mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+			--neg: #b42318;
+			--pos: #15803d;
 			--serif: 'Fraunces', Georgia, serif;
-			--sans: 'Inter', system-ui, sans-serif;
+			--sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 		}
-		@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700 &family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
 		* {
 			box-sizing: border-box;
 		}
@@ -32,182 +36,275 @@
 			background: var(--paper);
 			color: var(--ink);
 			font-family: var(--sans);
+			line-height: 1.4;
 		}
-		header {
-			padding: 20px 28px 16px;
-			border-bottom: 1px solid var(--line);
-			background: var(--panel);
+		a {
+			color: var(--teal);
+		}
+		a:hover {
+			color: var(--teal-dark);
+		}
+		button,
+		input,
+		select {
+			font-family: inherit;
+		}
+		:focus-visible {
+			outline: 2px solid var(--teal);
+			outline-offset: 2px;
+		}
+		.sr-only {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			margin: -1px;
+			padding: 0;
+			overflow: hidden;
+			clip: rect(0 0 0 0);
+			white-space: nowrap;
+			border: 0;
+		}
+		.page {
+			max-width: 1360px;
+			margin: 0 auto;
+			padding: 0 32px 40px;
+		}
+
+		/* En-tête et période */
+		header.top {
 			display: flex;
+			flex-wrap: wrap;
+			gap: 16px 32px;
 			align-items: flex-end;
 			justify-content: space-between;
-			flex-wrap: wrap;
-			gap: 16px;
+			padding: 24px 0 16px;
 		}
-		header h1 {
+		header.top h1 {
 			font-family: var(--serif);
-			font-weight: 700;
-			font-size: 1.6rem;
+			font-weight: 600;
+			font-size: 1.9rem;
+			line-height: 1.15;
 			margin: 0;
-			letter-spacing: -0.01em;
 		}
-		header .sub {
-			font-size: 0.82rem;
+		header.top .sub {
+			margin: 6px 0 0;
+			font-size: 0.95rem;
 			color: var(--slate);
-			margin-top: 4px;
 		}
-
 		.controls {
 			display: flex;
-			align-items: center;
-			gap: 10px;
 			flex-wrap: wrap;
+			gap: 12px;
+			align-items: flex-end;
 		}
-		.controls label {
-			font-size: 0.75rem;
-			color: var(--slate);
-			display: block;
-			margin-bottom: 3px;
+		.segmented {
+			display: flex;
+			border: 1px solid var(--line-strong);
+			border-radius: 8px;
+			overflow: hidden;
+			background: #fff;
 		}
-		.controls input[type=date] {
-			font-family: var(--mono);
-			font-size: 0.85rem;
-			padding: 6px 8px;
-			border: 1px solid var(--line);
-			border-radius: 4px;
-			background: var(--paper);
+		.segmented button {
+			min-height: 44px;
+			padding: 0 16px;
+			border: 0;
+			border-left: 1px solid var(--line-strong);
+			background: #fff;
 			color: var(--ink);
-		}
-		.controls button {
-			font-family: var(--sans);
-			font-weight: 600;
-			font-size: 0.85rem;
-			background: var(--teal);
-			color: white;
-			border: none;
-			border-radius: 4px;
-			padding: 8px 16px;
+			font-size: 0.875rem;
 			cursor: pointer;
-			align-self: flex-end;
 		}
-		.controls button:hover {
-			background: var(--teal-dark);
+		.segmented button:first-child {
+			border-left: 0;
 		}
-		.controls .field {
+		.segmented button[aria-pressed="true"] {
+			background: var(--teal);
+			color: #fff;
+			font-weight: 600;
+		}
+		.field {
 			display: flex;
 			flex-direction: column;
+			gap: 4px;
+			font-size: 0.75rem;
+			color: var(--slate);
+		}
+		.field input[type=date] {
+			height: 44px;
+			padding: 0 10px;
+			border: 1px solid var(--line-strong);
+			border-radius: 8px;
+			font-size: 0.875rem;
+			color: var(--ink);
+			background: #fff;
+		}
+		.btn {
+			min-height: 44px;
+			padding: 0 20px;
+			border: 1px solid var(--teal);
+			border-radius: 8px;
+			background: var(--teal);
+			color: #fff;
+			font-size: 0.875rem;
+			font-weight: 600;
+			cursor: pointer;
+		}
+		.btn:hover {
+			background: var(--teal-dark);
+			border-color: var(--teal-dark);
+		}
+		.btn:disabled {
+			opacity: 0.6;
+			cursor: progress;
+		}
+		.btn-secondary {
+			background: #fff;
+			color: var(--ink);
+			border-color: var(--line-strong);
+			font-weight: 500;
+		}
+		.btn-secondary:hover {
+			background: var(--paper);
+			border-color: var(--line-strong);
+		}
+		.btn-outline {
+			background: #fff;
+			color: var(--teal);
+		}
+		.btn-outline:hover {
+			background: var(--teal-tint);
+			color: var(--teal-dark);
 		}
 
-		#status {
+		/* Résumé */
+		.summary {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px 36px;
+			align-items: center;
+			padding: 14px 20px;
+			margin-bottom: 8px;
+			background: var(--panel);
+			border: 1px solid var(--line);
+			border-radius: 12px;
+		}
+		.summary p {
+			margin: 0;
+			font-size: 0.875rem;
+			color: var(--slate);
+		}
+		.summary .num {
+			font-family: var(--serif);
+			font-size: 1.5rem;
+			font-weight: 600;
+			color: var(--ink);
+		}
+		.summary .num.neg {
+			color: var(--neg);
+		}
+		.summary .strong {
+			color: var(--ink);
+			font-weight: 600;
+		}
+		.summary .prov {
+			margin-left: auto;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 0.8125rem;
+		}
+		.summary .prov[hidden] {
+			display: none;
+		}
+		.hatch {
+			display: inline-block;
+			width: 18px;
+			height: 14px;
+			border: 1px solid var(--line-strong);
+			border-radius: 3px;
+			background: repeating-linear-gradient(45deg, var(--line) 0 2px, #fff 2px 5px);
+		}
+		.loading {
+			color: var(--teal);
+			font-size: 0.8125rem;
+		}
+		.notice {
+			margin: 0 0 12px;
 			font-size: 0.78rem;
 			color: var(--slate);
-			padding: 6px 28px;
-			font-family: var(--mono);
-			min-height: 1.6em;
+		}
+		#status {
+			margin: 0 0 12px;
+			font-size: 0.8125rem;
+			color: var(--slate);
+		}
+		#status:empty {
+			display: none;
 		}
 
-		main {
+		/* Carte et liste */
+		.workspace {
 			display: grid;
-			grid-template-columns: 1.3fr 1fr;
-			grid-template-rows: 55vh auto;
-			gap: 1px;
-			background: var(--line);
+			grid-template-columns: minmax(0, 1fr) minmax(320px, 480px);
+			gap: 16px;
+			height: clamp(520px, 72vh, 680px);
+			margin-bottom: 16px;
+		}
+		.map-card {
+			position: relative;
+			min-width: 0;
+			border: 1px solid var(--line);
+			border-radius: 12px;
+			overflow: hidden;
+			background: #eaf0ee;
 		}
 		#map {
 			width: 100%;
 			height: 100%;
-			background: var(--panel);
 		}
-
-		.panel {
-			background: var(--panel);
-			padding: 14px 18px;
-			overflow: auto;
+		.legend {
+			position: absolute;
+			left: 12px;
+			bottom: 28px;
+			z-index: 900;
+			max-width: calc(100% - 24px);
+			padding: 12px 14px;
+			background: rgba(255, 255, 255, 0.96);
+			border: 1px solid var(--line);
+			border-radius: 10px;
+			font-size: 0.8125rem;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
 		}
-		.panel h2 {
-			font-family: var(--serif);
-			font-size: 1rem;
-			font-weight: 700;
-			margin: 0 0 10px;
+		.legend strong {
+			font-weight: 600;
 		}
-
-		#legend {
-			padding: 10px 28px;
-			background: var(--panel);
-			border-bottom: 1px solid var(--line);
+		.legend .row {
 			display: flex;
 			align-items: center;
-			gap: 10px;
-			font-size: 0.75rem;
+			gap: 8px;
 			color: var(--slate);
 		}
-		#legend .bar {
-			height: 10px;
-			width: 180px;
-			border-radius: 2px;
-			background: linear-gradient(to right, #7f1d1d, #dc2626, #f97316, var(--amber));
+		.legend .tri {
+			width: 0;
+			height: 0;
+			border-left: 5px solid transparent;
+			border-right: 5px solid transparent;
+			border-top: 9px solid #b91c1c;
 		}
-		#legend .green-chip {
+		.legend .bar {
+			width: 120px;
+			height: 10px;
+			border-radius: 5px;
+			background: linear-gradient(to right, #7f1d1d, #dc2626, #f97316, #fbbf24);
+		}
+		.legend .dot {
 			width: 10px;
 			height: 10px;
-			border-radius: 2px;
+			margin: 0 5px;
+			border-radius: 50%;
 			background: #16a34a;
-			display: inline-block;
-		}
-
-		table {
-			width: 100%;
-			border-collapse: collapse;
-			font-size: 0.8rem;
-		}
-		thead th {
-			text-align: left;
-			font-weight: 600;
-			color: var(--slate);
-			font-size: 0.7rem;
-			text-transform: uppercase;
-			letter-spacing: 0.04em;
-			padding: 6px 8px;
-			border-bottom: 1px solid var(--line);
-			cursor: pointer;
-			position: sticky;
-			top: 0;
-			background: var(--panel);
-		}
-		thead th:hover {
-			color: var(--teal-dark);
-		}
-		tbody td {
-			padding: 6px 8px;
-			border-bottom: 1px solid #eef2f1;
-			font-family: var(--mono);
-			font-size: 0.76rem;
-		}
-		tbody tr:hover {
-			background: #f6faf9;
-		}
-		tbody td.name {
-			font-family: var(--sans);
-		}
-		.neg {
-			color: #b91c1c;
-			font-weight: 600;
-		}
-		.pos {
-			color: #15803d;
-			font-weight: 600;
-		}
-		.flag {
-			display: inline-block;
-			margin-top: 2px;
-			padding: 1px 6px;
-			border: 1px solid #f0c27b;
-			border-radius: 999px;
-			background: #fff1dc;
-			color: #7a3e00;
-			font-family: var(--sans);
-			font-size: 0.65rem;
-			font-weight: 600;
-			white-space: nowrap;
 		}
 		.map-hint {
 			position: absolute;
@@ -227,69 +324,309 @@
 		.map-hint.visible {
 			opacity: 1;
 		}
+		.list-card {
+			display: flex;
+			flex-direction: column;
+			min-width: 0;
+			min-height: 0;
+			background: var(--panel);
+			border: 1px solid var(--line);
+			border-radius: 12px;
+		}
+		.list-head {
+			padding: 16px 16px 12px;
+			border-bottom: 1px solid #eef1ef;
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+		}
+		.list-head h2 {
+			margin: 0;
+			display: flex;
+			justify-content: space-between;
+			align-items: baseline;
+			font-family: var(--serif);
+			font-size: 1.25rem;
+			font-weight: 600;
+		}
+		.count {
+			font-family: var(--sans);
+			font-size: 0.875rem;
+			font-weight: 400;
+			color: var(--slate);
+		}
 		#search {
 			width: 100%;
-			padding: 7px 10px;
-			border: 1px solid var(--line);
-			border-radius: 4px;
-			font-size: 0.8rem;
-			margin-bottom: 10px;
+			height: 44px;
+			padding: 0 12px;
+			border: 1px solid var(--line-strong);
+			border-radius: 8px;
+			font-size: 0.875rem;
+			color: var(--ink);
+			background: #fff;
+		}
+		.filters {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+		}
+		#riverFilter {
+			height: 36px;
+			max-width: 100%;
+			padding: 0 10px;
+			border: 1px solid var(--line-strong);
+			border-radius: 8px;
+			background: #fff;
+			color: var(--ink);
+			font-size: 0.8125rem;
+		}
+		.chip-toggle {
+			height: 36px;
+			padding: 0 12px;
+			border: 1px solid var(--line-strong);
+			border-radius: 999px;
+			background: #fff;
+			color: var(--ink);
+			font-size: 0.8125rem;
+			cursor: pointer;
+		}
+		.chip-toggle[aria-pressed="true"] {
+			background: var(--teal-tint);
+			border-color: var(--teal);
+			color: var(--teal-dark);
+			font-weight: 600;
+		}
+		.list-tools {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-between;
+			align-items: center;
+			gap: 4px 12px;
+			padding: 6px 16px;
+			border-bottom: 1px solid #eef1ef;
+			font-size: 0.75rem;
+			color: var(--slate);
+		}
+		.list-tools label {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+		}
+		.list-tools select {
+			height: 30px;
+			padding: 0 6px;
+			border: 1px solid var(--line-strong);
+			border-radius: 6px;
+			background: #fff;
+			color: var(--ink);
+			font-size: 0.75rem;
+		}
+		.link-btn {
+			border: 0;
+			background: transparent;
+			color: var(--teal);
+			font-size: 0.75rem;
+			font-weight: 600;
+			text-decoration: underline;
+			padding: 8px 0;
+			cursor: pointer;
+		}
+		#stationList {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+			overflow: auto;
+			flex: 1 1 auto;
+			min-height: 0;
+		}
+		.station {
+			display: flex;
+			gap: 12px;
+			align-items: flex-start;
+			padding: 12px 16px;
+			border-bottom: 1px solid #eef1ef;
+		}
+		.station:hover {
+			background: #f6faf9;
+		}
+		.station.is-selected {
+			background: var(--teal-tint);
+		}
+		.station input[type=checkbox] {
+			flex: 0 0 auto;
+			width: 20px;
+			height: 20px;
+			margin: 2px 0 0;
+			accent-color: var(--teal);
+		}
+		.station-main {
+			flex: 1 1 auto;
+			min-width: 0;
+		}
+		.station-name {
+			font-size: 0.9375rem;
+			font-weight: 600;
+		}
+		.station-commune {
+			font-size: 0.8125rem;
+			color: var(--slate);
+		}
+		.station-links {
+			display: flex;
+			gap: 14px;
+			margin-top: 6px;
+			font-size: 0.75rem;
+		}
+		.station-var {
+			flex: 0 0 auto;
+			text-align: right;
+			font-size: 1rem;
+			font-weight: 600;
+			font-variant-numeric: tabular-nums;
+		}
+		.neg {
+			color: var(--neg);
+		}
+		.pos {
+			color: var(--pos);
+		}
+		.empty-list {
+			padding: 24px 16px;
+			font-size: 0.875rem;
+			color: var(--slate);
+		}
+		.flag {
+			display: inline-block;
+			margin-top: 4px;
+			padding: 2px 8px;
+			border: 1px solid #f0c27b;
+			border-radius: 999px;
+			background: #fff1dc;
+			color: #7a3e00;
 			font-family: var(--sans);
+			font-size: 0.6875rem;
+			font-weight: 600;
+			white-space: nowrap;
 		}
 
-		#chartPanel {
-			grid-column: 1 / span 2;
-			padding: 16px 28px 28px;
+		/* Graphique */
+		.chart-card {
+			padding: 20px;
 			background: var(--panel);
+			border: 1px solid var(--line);
+			border-radius: 12px;
 		}
-		#chartPanel h2 {
-			font-family: var(--serif);
-			font-size: 1.05rem;
-			margin: 0 0 4px;
-		}
-		#chartPanel .sub {
-			font-size: 0.78rem;
-			color: var(--slate);
+		.chart-head {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 12px 24px;
+			align-items: center;
+			justify-content: space-between;
 			margin-bottom: 12px;
+		}
+		.chart-head h2 {
+			margin: 0;
+			font-family: var(--serif);
+			font-size: 1.25rem;
+			font-weight: 600;
+		}
+		.chart-head .sub {
+			margin: 4px 0 0;
+			font-size: 0.8125rem;
+			color: var(--slate);
+		}
+		.chart-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 12px;
+			align-items: center;
+		}
+		.check {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 0.8125rem;
+		}
+		.check input {
+			width: 18px;
+			height: 18px;
+			accent-color: var(--teal);
+		}
+		#selectedChips {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 6px;
+			margin-bottom: 10px;
+		}
+		.chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			min-height: 36px;
+			padding: 0 6px 0 12px;
+			border: 1px solid var(--line-strong);
+			border-radius: 999px;
+			background: #fff;
+			font-size: 0.8125rem;
+		}
+		.chip button {
+			width: 28px;
+			height: 28px;
+			border: 0;
+			border-radius: 50%;
+			background: #eef1ef;
+			color: var(--ink);
+			font-size: 1rem;
+			cursor: pointer;
+		}
+		.chip button:hover {
+			background: var(--line);
+		}
+		#selectionStats {
+			margin-bottom: 10px;
+			font-size: 0.8125rem;
+			color: var(--slate);
 		}
 		#chartWrap {
 			height: 320px;
 		}
-		.empty-hint {
+		.chart-legend {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px 24px;
+			margin-top: 10px;
+			font-size: 0.8125rem;
 			color: var(--slate);
-			font-size: 0.85rem;
-			font-style: italic;
+		}
+		.chart-legend span {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+		}
+		.mk {
+			display: inline-block;
+			width: 12px;
+			height: 12px;
+			border-radius: 50%;
+			background: var(--teal);
+		}
+		.mk.hollow {
+			background: #fff;
+			border: 2px solid var(--teal);
 		}
 
-		@media(max-width: 820px) {
-			main {
-				grid-template-columns: 1fr;
-				grid-template-rows: 45vh auto auto;
-			}
-			#chartPanel {
-				grid-column: 1;
-			}
-			header {
-				padding: 14px 16px;
-			}
-			header h1 {
-				font-size: 1.25rem;
-			}
-			#legend,
-			#status {
-				padding-left: 16px;
-				padding-right: 16px;
-			}
-			.controls {
-				width: 100%;
-			}
-			.controls .field {
-				flex: 1;
-				min-width: 120px;
-			}
-			.controls button {
-				flex: 1;
-			}
+		footer.foot {
+			margin-top: 20px;
+			font-size: 0.8125rem;
+			line-height: 1.6;
+			color: var(--slate);
+		}
+		footer.foot p {
+			margin: 0 0 4px;
+		}
+
+		#selectionBar {
+			display: none;
 		}
 
 		.leaflet-tooltip.station-tip {
@@ -302,91 +639,202 @@
 		.leaflet-tooltip.station-tip b {
 			font-family: var(--serif);
 		}
+
+		@media (max-width: 820px) {
+			.page {
+				padding: 0 16px 88px;
+			}
+			header.top {
+				padding: 16px 0 12px;
+			}
+			header.top h1 {
+				font-size: 1.5rem;
+			}
+			.controls {
+				width: 100%;
+			}
+			.segmented {
+				width: 100%;
+			}
+			.segmented button {
+				flex: 1 1 0;
+			}
+			.field {
+				flex: 1 1 130px;
+			}
+			.field input[type=date] {
+				width: 100%;
+			}
+			.controls .btn {
+				flex: 1 1 auto;
+			}
+			.summary {
+				gap: 8px 20px;
+				padding: 12px 16px;
+			}
+			.summary .prov {
+				margin-left: 0;
+				width: 100%;
+			}
+			.workspace {
+				grid-template-columns: 1fr;
+				height: auto;
+			}
+			.map-card {
+				height: 300px;
+			}
+			.list-card {
+				height: 70vh;
+			}
+			.legend {
+				padding: 8px 10px;
+				font-size: 0.75rem;
+			}
+			.chart-card {
+				padding: 16px;
+			}
+			.chart-actions {
+				width: 100%;
+			}
+			#selectionBar {
+				display: flex;
+				position: fixed;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				z-index: 2000;
+				height: 68px;
+				align-items: center;
+				justify-content: space-between;
+				gap: 12px;
+				padding: 0 16px;
+				background: #fff;
+				border-top: 1px solid var(--line);
+			}
+			#selectionBar[hidden] {
+				display: none;
+			}
+			#selectionBar p {
+				margin: 0;
+				font-size: 0.8125rem;
+				color: var(--slate);
+			}
+		}
 	</style>
 </head>
 <body>
 
-	<header>
-		<div>
-			<h1>Observatoire des débits</h1>
-			<div class="sub">Variation du débit des cours d'eau français — données Hub'Eau</div>
-		</div>
-		<div class="controls">
-			<div class="field">
-				<label for="dateDebut">Début</label>
-				<input type="date" id="dateDebut">
+	<div class="page">
+
+		<header class="top">
+			<div>
+				<h1>Observatoire des débits</h1>
+				<p class="sub">Variation du débit des cours d'eau français, d'après les données Hub'Eau</p>
 			</div>
-			<div class="field">
-				<label for="dateFin">Fin</label>
-				<input type="date" id="dateFin">
+			<div class="controls">
+				<div class="segmented" role="group" aria-label="Période">
+					<button type="button" data-period="7" aria-pressed="true">7 jours</button>
+					<button type="button" data-period="30" aria-pressed="false">30 jours</button>
+					<button type="button" data-period="custom" aria-pressed="false">Personnalisé</button>
+				</div>
+				<label class="field">Du
+					<input type="date" id="dateDebut">
+				</label>
+				<label class="field">Au
+					<input type="date" id="dateFin">
+				</label>
+				<button type="button" class="btn" id="btnActualiser">Actualiser</button>
+				<button type="button" class="btn btn-secondary" id="btnReset">Réinitialiser</button>
 			</div>
-			<button id="btnActualiser">Actualiser</button>
-			<button id="btnReset" style="background:white; color:var(--slate); border:1px solid var(--line);">Réinitialiser</button>
-		</div>
-	</header>
+		</header>
 
-	<div id="disclaimer" style="background:#fffbeb; border-bottom:1px solid #fde68a; padding:6px 28px; font-size:0.72rem; color:#78350f; text-align:center;">
-		Données :
-		<a href="https://hubeau.eaufrance.fr/" target="_blank" style="color:#78350f;">Hub'Eau</a>
-		(API publique du Ministère de la Transition écologique) —
-		  la variation affichée est un indicateur exploratoire, pas un seuil réglementaire officiel (DSA/DAR/DCR) — pour un suivi officiel, voir
-		<a href="https://vigieau.gouv.fr" target="_blank" style="color:#78350f;">VigiEau</a>.
-	</div>
+		<section class="summary" aria-label="Résumé de la période">
+			<p><strong class="num" id="sumStations">–</strong> stations calculées</p>
+			<p><strong class="num neg" id="sumDeclines">–</strong> baisses de 50 % ou plus</p>
+			<p>Période : <span class="strong" id="sumPeriod">–</span></p>
+			<p class="prov" id="sumProv" hidden><span class="hatch" aria-hidden="true"></span><span id="sumProvText"></span></p>
+			<span id="loadingSpinner" class="loading" style="display:none;">Chargement…</span>
+		</section>
+		<p class="notice">La variation est un indicateur exploratoire calculé sur la période choisie : ce n'est pas un seuil réglementaire de sécheresse (DSA/DAR/DCR). Pour un suivi officiel, voir
+			<a href="https://vigieau.gouv.fr" target="_blank" rel="noopener">VigiEau</a>.</p>
+		<div id="status" role="status" aria-live="polite"></div>
 
-	<div id="legend">
-		<span>-50% ou pire</span>
-		<span class="bar"></span>
-		<span>0%</span>
-		<span style="margin-left:14px;">
-			<span class="green-chip"></span>
-			stable / hausse</span>
-		<span id="loadingSpinner" style="display:none; margin-left:auto; color:var(--teal);">⏳ Chargement…</span>
-	</div>
+		<main class="workspace">
+			<section class="map-card" aria-label="Carte des stations">
+				<div id="map"></div>
+				<div class="legend">
+					<strong>Variation du débit</strong>
+					<div class="row"><span class="tri" aria-hidden="true"></span><span class="bar" aria-hidden="true"></span><span>de −50 % ou pire à 0 %</span></div>
+					<div class="row"><span class="dot" aria-hidden="true"></span><span>stable ou hausse</span></div>
+				</div>
+			</section>
 
-	<div id="status">Prêt.</div>
+			<section class="list-card" aria-label="Liste des stations">
+				<div class="list-head">
+					<h2>Stations <span class="count" id="tableCount"></span></h2>
+					<div>
+						<label class="sr-only" for="search">Rechercher une rivière ou une commune</label>
+						<input type="search" id="search" placeholder="Rivière ou commune">
+					</div>
+					<div class="filters">
+						<label class="sr-only" for="riverFilter">Rivière</label>
+						<select id="riverFilter">
+							<option value="">Toutes les rivières</option>
+						</select>
+						<button type="button" class="chip-toggle" id="fltDeclines" aria-pressed="false">Baisse de 50 % ou plus</button>
+						<button type="button" class="chip-toggle" id="fltHideFlagged" aria-pressed="false">Masquer les débits nuls non validés</button>
+					</div>
+				</div>
+				<div class="list-tools">
+					<label><input type="checkbox" id="selectAllVisible"> Tout sélectionner</label>
+					<label>Trier par
+						<select id="sortKey">
+							<option value="variation">Variation</option>
+							<option value="riviere">Rivière</option>
+							<option value="commune">Commune</option>
+						</select>
+					</label>
+					<button type="button" class="link-btn" id="btnSortDir"></button>
+				</div>
+				<ul id="stationList"></ul>
+			</section>
+		</main>
 
-	<main>
-		<div id="map"></div>
-
-		<div class="panel">
-			<h2>Stations
-				<span id="tableCount" style="color:var(--slate); font-weight:400;"></span>
-			</h2>
-			<div style="display:flex; gap:8px; margin-bottom:10px;">
-				<select id="riverFilter" style="flex:1; padding:6px 8px; border:1px solid var(--line); border-radius:4px; font-size:0.8rem; font-family: var(--sans);">
-					<option value="">Toutes les rivières</option>
-				</select>
+		<section class="chart-card" id="chartPanel" aria-label="Évolution du débit">
+			<div class="chart-head">
+				<div>
+					<h2>Évolution du débit</h2>
+					<p class="sub" id="chartSub">Coche une ou plusieurs stations dans la liste (ou clique sur la carte) pour afficher leur historique sur la période sélectionnée.</p>
+				</div>
+				<div class="chart-actions">
+					<label class="check"><input type="checkbox" id="showAverage"> Afficher la moyenne des stations sélectionnées</label>
+					<button type="button" class="btn btn-outline" id="btnExport">Exporter la sélection (CSV)</button>
+				</div>
 			</div>
-			<input type="text" id="search" placeholder="Filtrer par rivière ou commune…">
-			<table>
-				<thead>
-					<tr>
-						<th style="width:26px;"><input type="checkbox" id="selectAllVisible" title="Tout sélectionner / désélectionner"></th>
-						<th data-sort="riviere">Rivière</th>
-						<th data-sort="commune">Commune</th>
-						<th data-sort="variation" style="text-align:right;">Variation</th>
-						<th style="white-space:nowrap;">Fiches</th>
-					</tr>
-				</thead>
-				<tbody id="tableBody"></tbody>
-			</table>
-		</div>
-
-		<div id="chartPanel">
-			<h2>Évolution du débit</h2>
-			<div class="sub" id="chartSub">Coche une ou plusieurs stations dans le tableau (ou clique sur la carte) pour afficher leur historique sur la période sélectionnée.</div>
-			<div id="selectedChips" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;"></div>
-			<button id="btnExport" style="font-size:0.75rem; padding:6px 12px; border:1px solid var(--teal); background:white; color:var(--teal); border-radius:4px; cursor:pointer; margin-bottom:10px;">Exporter la sélection (CSV)</button>
-			<label style="font-size:0.8rem; display:flex; align-items:center; gap:6px; margin-bottom:8px;">
-				<input type="checkbox" id="showAverage">
-				Afficher la moyenne des stations sélectionnées
-			</label>
-			<div id="selectionStats" style="font-family: var(--mono); font-size:0.8rem; color:var(--slate); margin-bottom:10px;"></div>
+			<div id="selectedChips"></div>
+			<div id="selectionStats"></div>
 			<div id="chartWrap">
 				<canvas id="chart"></canvas>
 			</div>
-		</div>
-	</main>
+			<div class="chart-legend">
+				<span><i class="mk" aria-hidden="true"></i>Mesure qualifiée</span>
+				<span><i class="mk hollow" aria-hidden="true"></i>Mesure non qualifiée</span>
+				<span><i class="hatch" aria-hidden="true"></i>Données provisoires</span>
+			</div>
+		</section>
+
+		<footer class="foot">
+			<p>Données :
+				<a href="https://hubeau.eaufrance.fr/" target="_blank" rel="noopener">Hub'Eau</a>
+				(API publique du Ministère de la Transition écologique), licence ouverte Etalab 2.0.</p>
+			<p><a href="https://github.com/raphael25200/hydro-observatoire" target="_blank" rel="noopener">Code source sur GitHub</a></p>
+		</footer>
+	</div>
+
+	<div id="selectionBar" hidden>
+		<p id="selectionBarText"></p>
+		<button type="button" class="btn" id="btnSeeChart">Voir la courbe</button>
+	</div>
 
 	<script>
 		const API = "https://hubeau.eaufrance.fr/api/v2/hydrometrie/obs_elab";
@@ -414,36 +862,64 @@ let sortKey = "variation",
 sortAsc = true;
 let chartInstance = null;
 let activeRiver = ""; // rivière choisie dans le filtre ("" = toutes)
+let onlyDeclines = false; // filtre : baisse de 50 % ou plus
+let hideFlagged = false; // filtre : masque les débits nuls non validés
 let lastDateDebut = "",
 lastDateFin = "";
 // dates ayant servi au dernier calcul (carte/tableau)
 
-// Stations actuellement affichées (après filtre rivière + recherche texte)
+function esc(s) {
+	return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function riverKey(name) {
+	return String(name).trim().toLowerCase();
+}
+
+function fmtPct(v) {
+	return (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(1).replace(".", ",") + " %";
+}
+
+function fmtInt(n) {
+	return n.toLocaleString("fr-FR");
+}
+
+// Stations actuellement affichées (après filtres rivière, texte, baisse, débits nuls)
 function visibleRows() {
-const filter = document.getElementById("search").value.trim().toLowerCase();
-return rows.filter(r => (! activeRiver || r.riviere === activeRiver) && (! filter || r.riviere.toLowerCase().includes(filter) || r.commune.toLowerCase().includes(filter)));
+	const filter = document.getElementById("search").value.trim().toLowerCase();
+	const riv = riverKey(activeRiver);
+	return rows.filter(r => (! riv || riverKey(r.riviere) === riv)
+		&& (! filter || r.riviere.toLowerCase().includes(filter) || r.commune.toLowerCase().includes(filter))
+		&& (! onlyDeclines || r.variation <= -50)
+		&& (! hideFlagged || ! r.nulNonValide));
 }
 
 // Stations à afficher sur la carte : celles du filtre actif, plus toutes celles sélectionnées
 // même si elles appartiennent à une autre rivière (pour comparer visuellement plusieurs cours d'eau).
 function mapRows() {
-const visible = visibleRows();
-const visibleCodes = new Set(visible.map(r => r.code));
-const extra = rows.filter(r => selected.has(r.code) && ! visibleCodes.has(r.code));
-return visible.concat(extra);
+	const visible = visibleRows();
+	const visibleCodes = new Set(visible.map(r => r.code));
+	const extra = rows.filter(r => selected.has(r.code) && ! visibleCodes.has(r.code));
+	return visible.concat(extra);
 }
 
+// Liste des rivières sans doublon de casse (« Loire » et « LOIRE » comptent pour une seule)
 function populateRiverFilter() {
-const sel = document.getElementById("riverFilter");
-const rivers = Array.from(new Set(rows.map(r => r.riviere))).sort((a, b) => a.localeCompare(b, 'fr'));
-sel.innerHTML = '<option value="">Toutes les rivières</option>' + rivers.map(r => `<option value="${
-r.replace(/"/g, '&quot;')
-}">${r}</option>`).join('');
-if (rivers.includes(activeRiver)) 
-sel.value = activeRiver;
- else 
-activeRiver = "";
-
+	const sel = document.getElementById("riverFilter");
+	const byKey = new Map();
+	rows.forEach(r => {
+		const k = riverKey(r.riviere);
+		if (! byKey.has(k)) byKey.set(k, r.riviere.trim());
+	});
+	const rivers = Array.from(byKey.values()).sort((a, b) => a.localeCompare(b, 'fr', {sensitivity: 'base'}));
+	sel.innerHTML = '<option value="">Toutes les rivières</option>' + rivers.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
+	const match = rivers.find(r => riverKey(r) === riverKey(activeRiver));
+	if (activeRiver && match) {
+		activeRiver = match;
+		sel.value = match;
+	} else {
+		activeRiver = "";
+	}
 }
 
 // Point d'entrée unique pour toute sélection/désélection (carte ou tableau)
@@ -459,47 +935,40 @@ updateChart();
 }
 
 function updateSelectionStats() {
-renderSelectedChips();
-const box = document.getElementById("selectionStats");
-if (selected.size === 0) {
-box.textContent = "";
-return;
-}
-const vals = rows.filter(r => selected.has(r.code)).map(r => r.variation);
-const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
-box.textContent = `${
-selected.size
-} station(s) sélectionnée(s) — variation moyenne sur la période : ${
-avg >= 0 ? "+" : ""
-}${
-avg.toFixed(1)
-}%`;
+	renderSelectedChips();
+	const box = document.getElementById("selectionStats");
+	const bar = document.getElementById("selectionBar");
+	if (selected.size === 0) {
+		box.textContent = "";
+		bar.hidden = true;
+		return;
+	}
+	const vals = rows.filter(r => selected.has(r.code)).map(r => r.variation);
+	const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+	box.textContent = `${selected.size} station${selected.size > 1 ? "s" : ""} sélectionnée${selected.size > 1 ? "s" : ""} — variation moyenne sur la période : ${fmtPct(avg)}`;
+	document.getElementById("selectionBarText").innerHTML = `<strong>${selected.size} station${selected.size > 1 ? "s" : ""}</strong> sélectionnée${selected.size > 1 ? "s" : ""}`;
+	bar.hidden = false;
 }
 
-// Toutes les stations sélectionnées, même celles masquées par le filtre rivière/recherche en cours.
-// Chaque étiquette est retirable individuellement, pour garder une vue d'ensemble claire
-// quand on compare des stations de plusieurs rivières différentes.
+// Toutes les stations sélectionnées, même celles masquées par les filtres en cours.
+// Chaque étiquette est retirable individuellement.
 function renderSelectedChips() {
-const box = document.getElementById("selectedChips");
-box.innerHTML = "";
-Array.from(selected).forEach(code => {
-const info = rows.find(r => r.code === code);
-const label = info ? `${
-info.riviere
-} — ${
-info.commune
-}` : code;
-const chip = document.createElement("span");
-chip.style.cssText = "background:#eef2f1; border:1px solid var(--line); border-radius:999px; padding:3px 6px 3px 10px; font-size:0.75rem; display:inline-flex; align-items:center; gap:6px;";
-const remove = document.createElement("span");
-remove.textContent = "×";
-remove.style.cssText = "cursor:pointer; font-weight:700; color:var(--slate); padding:0 4px;";
-remove.title = "Retirer de la sélection";
-remove.addEventListener('click', () => toggleSelection(code));
-chip.textContent = label + " ";
-chip.appendChild(remove);
-box.appendChild(chip);
-});
+	const box = document.getElementById("selectedChips");
+	box.innerHTML = "";
+	Array.from(selected).forEach(code => {
+		const info = rows.find(r => r.code === code);
+		const label = info ? `${info.riviere} — ${info.commune}` : code;
+		const chip = document.createElement("span");
+		chip.className = "chip";
+		chip.appendChild(document.createTextNode(label));
+		const remove = document.createElement("button");
+		remove.type = "button";
+		remove.textContent = "×";
+		remove.setAttribute("aria-label", "Retirer " + label + " de la sélection");
+		remove.addEventListener('click', () => toggleSelection(code));
+		chip.appendChild(remove);
+		box.appendChild(chip);
+	});
 }
 
 function fmtDate(d) {
@@ -507,23 +976,67 @@ return d.toISOString().slice(0, 10);
 }
 
 function initDates() {
-const saved = JSON.parse(localStorage.getItem("hydro_dashboard_settings") || "{}");
-if (saved.dateDebut && saved.dateFin) {
-document.getElementById("dateDebut").value = saved.dateDebut;
-document.getElementById("dateFin").value = saved.dateFin;
-} else {
-// Les données récentes (< ~3 jours) sont souvent non validées côté API ; par défaut
-// on prend les 7 derniers jours, en s'arrêtant hier (aujourd'hui n'est pas encore dispo).
-const fin = new Date();
-fin.setDate(fin.getDate() - 1);
-const debut = new Date(fin);
-debut.setDate(debut.getDate() - 7);
-document.getElementById("dateFin").value = fmtDate(fin);
-document.getElementById("dateDebut").value = fmtDate(debut);
+	const saved = JSON.parse(localStorage.getItem("hydro_dashboard_settings") || "{}");
+	if (saved.dateDebut && saved.dateFin) {
+		document.getElementById("dateDebut").value = saved.dateDebut;
+		document.getElementById("dateFin").value = saved.dateFin;
+	} else {
+		setPeriodDays(7);
+	}
+	if (saved.activeRiver) activeRiver = saved.activeRiver;
+	syncPeriodButtons();
 }
-if (saved.activeRiver) 
-activeRiver = saved.activeRiver;
 
+// Les données récentes (< ~3 jours) sont souvent non validées côté API ; par défaut
+// on s'arrête hier (aujourd'hui n'est pas encore disponible).
+function setPeriodDays(n) {
+	const fin = new Date();
+	fin.setDate(fin.getDate() - 1);
+	const debut = new Date(fin);
+	debut.setDate(debut.getDate() - n);
+	document.getElementById("dateFin").value = fmtDate(fin);
+	document.getElementById("dateDebut").value = fmtDate(debut);
+}
+
+function syncPeriodButtons() {
+	const d = document.getElementById("dateDebut").value;
+	const f = document.getElementById("dateFin").value;
+	const hier = new Date();
+	hier.setDate(hier.getDate() - 1);
+	let mode = "custom";
+	if (d && f && f === fmtDate(hier)) {
+		const jours = Math.round((Date.parse(f) - Date.parse(d)) / 86400000);
+		if (jours === 7) mode = "7";
+		else if (jours === 30) mode = "30";
+	}
+	setPeriodPressed(mode);
+}
+
+function setPeriodPressed(mode) {
+	document.querySelectorAll('[data-period]').forEach(b => {
+		b.setAttribute('aria-pressed', b.getAttribute('data-period') === mode ? "true" : "false");
+	});
+}
+
+function fmtLong(iso) {
+	return new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", {day: "numeric", month: "long", year: "numeric"});
+}
+
+function fmtPeriod(d, f) {
+	const a = new Date(d + "T12:00:00"), b = new Date(f + "T12:00:00");
+	if (a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()) return `${a.getDate()} au ${fmtLong(f)}`;
+	return `${fmtLong(d)} au ${fmtLong(f)}`;
+}
+
+// Chiffres clés sous l'en-tête
+function updateSummary() {
+	document.getElementById("sumStations").textContent = fmtInt(rows.length);
+	document.getElementById("sumDeclines").textContent = fmtInt(rows.filter(r => r.variation <= -50).length);
+	document.getElementById("sumPeriod").textContent = fmtPeriod(lastDateDebut, lastDateFin);
+	const prov = document.getElementById("sumProv");
+	const limite = fmtDate(new Date(Date.now() - 3 * 86400000));
+	prov.hidden = ! (lastDateFin >= limite);
+	document.getElementById("sumProvText").textContent = "Les 3 derniers jours sont provisoires";
 }
 
 function saveSettings() {
@@ -653,7 +1166,7 @@ setStatus("La date de début doit être avant la date de fin.");
 return;
 }
 
-setStatus(`Chargement des données du ${dateDebut} et du ${dateFin}…`);
+setStatus(`Chargement des données du ${fmtLong(dateDebut)} et du ${fmtLong(dateFin)}…`);
 document.getElementById("btnActualiser").disabled = true;
 document.getElementById("loadingSpinner").style.display = "inline";
 try {
@@ -696,9 +1209,8 @@ populateRiverFilter();
 renderMap(mapRows());
 renderTable();
 saveSettings();
-setStatus(`${
-rows.length
-} stations avec une variation calculable entre le ${dateDebut} et le ${dateFin}.`);
+updateSummary();
+setStatus("");
 } catch (err) {
 setStatus("Erreur : " + err.message + " (l'API Hub'Eau est peut-être temporairement indisponible, ou le navigateur bloque l'appel — voir la console).");
 console.error(err);
@@ -789,58 +1301,63 @@ layerGroup.addLayer(marker);
 }
 
 function renderTable() {
-let list = visibleRows();
-list.sort((a, b) => {
-let va = a[sortKey],
-vb = b[sortKey];
-if (typeof va === "string") {
-va = va.toLowerCase();
-vb = vb.toLowerCase();
-}
-return(va > vb ? 1 : va < vb ? -1 : 0) * (sortAsc ? 1 : -1);
-});
+	let list = visibleRows();
+	list.sort((a, b) => {
+		let va = a[sortKey], vb = b[sortKey];
+		if (typeof va === "string") {
+			va = va.toLowerCase();
+			vb = vb.toLowerCase();
+		}
+		return (va > vb ? 1 : va < vb ? -1 : 0) * (sortAsc ? 1 : -1);
+	});
 
-document.getElementById("tableCount").textContent = `(${
-list.length
-})`;
-const selectAll = document.getElementById("selectAllVisible");
-selectAll.checked = list.length > 0 && list.every(r => selected.has(r.code));
-selectAll.indeterminate = ! selectAll.checked && list.some(r => selected.has(r.code));
-const tbody = document.getElementById("tableBody");
-tbody.innerHTML = "";
-list.forEach(r => {
-const tr = document.createElement("tr");
-const cls = r.variation < 0 ? "neg" : "pos";
-tr.innerHTML = `
-      <td><input type="checkbox" data-code="${
-r.code
-}" ${
-selected.has(r.code) ? "checked" : ""
-}></td>
-      <td class="name">${
-r.riviere
-}</td>
-      <td class="name">${
-r.commune
-}</td>
-      <td class="${cls}" style="text-align:right;">${
-r.variation >= 0 ? "+" : ""
-}${
-r.variation.toFixed(1)
-}%${
-r.nulNonValide ? '<br><span class="flag" title="Débit du jour de fin à 0 L/s, mesure non qualifiée par Hub\'Eau : à vérifier avant toute interprétation">Débit nul non validé</span>' : ""
-}</td>
-      <td class="name" style="white-space:nowrap; font-size:12px;"><a href="https://www.vigicrues.gouv.fr/station/${
-r.code
-}" target="_blank" rel="noopener" title="Voir la station sur Vigicrues">Vigicrues</a> · <a href="https://www.hydro.eaufrance.fr/stationhydro/${
-r.code
-}/fiche" target="_blank" rel="noopener" title="Voir la fiche sur HydroPortail (Hub'Eau)">HydroPortail</a></td>
-    `;
-tbody.appendChild(tr);
-});
-tbody.querySelectorAll('input[type=checkbox]').forEach(cb => {
-cb.addEventListener('change', onToggleSelect);
-});
+	document.getElementById("tableCount").textContent = `${fmtInt(list.length)} sur ${fmtInt(rows.length)}`;
+	const selectAll = document.getElementById("selectAllVisible");
+	selectAll.checked = list.length > 0 && list.every(r => selected.has(r.code));
+	selectAll.indeterminate = ! selectAll.checked && list.some(r => selected.has(r.code));
+	updateSortUi();
+
+	const ul = document.getElementById("stationList");
+	ul.innerHTML = "";
+	if (list.length === 0) {
+		const li = document.createElement("li");
+		li.className = "empty-list";
+		li.textContent = rows.length === 0 ? "Aucune donnée pour le moment." : "Aucune station ne correspond aux filtres.";
+		ul.appendChild(li);
+		return;
+	}
+	list.forEach(r => {
+		const li = document.createElement("li");
+		const isSel = selected.has(r.code);
+		li.className = "station" + (isSel ? " is-selected" : "");
+		li.innerHTML = `
+			<input type="checkbox" data-code="${esc(r.code)}" ${isSel ? "checked" : ""} aria-label="Sélectionner ${esc(r.riviere)}, ${esc(r.commune)}">
+			<div class="station-main">
+				<div class="station-name">${esc(r.riviere)}</div>
+				<div class="station-commune">${esc(r.commune)}</div>
+				<div class="station-links">
+					<a href="https://www.vigicrues.gouv.fr/station/${esc(r.code)}" target="_blank" rel="noopener" title="Voir la station sur Vigicrues">Vigicrues</a>
+					<a href="https://www.hydro.eaufrance.fr/stationhydro/${esc(r.code)}/fiche" target="_blank" rel="noopener" title="Voir la fiche sur HydroPortail (Hub'Eau)">HydroPortail</a>
+				</div>
+			</div>
+			<div class="station-var ${r.variation < 0 ? "neg" : "pos"}">${fmtPct(r.variation)}${r.nulNonValide ? '<br><span class="flag" title="Débit du jour de fin à 0 L/s, mesure non qualifiée par Hub\'Eau : à vérifier avant toute interprétation">Débit nul non validé</span>' : ""}</div>
+		`;
+		li.addEventListener('click', e => {
+			if (e.target.closest('a') || e.target.tagName === 'INPUT') return;
+			toggleSelection(r.code);
+		});
+		ul.appendChild(li);
+	});
+	ul.querySelectorAll('input[type=checkbox]').forEach(cb => {
+		cb.addEventListener('change', onToggleSelect);
+	});
+}
+
+function updateSortUi() {
+	document.getElementById("sortKey").value = sortKey;
+	const btn = document.getElementById("btnSortDir");
+	if (sortKey === "variation") btn.textContent = sortAsc ? "Plus fortes baisses d'abord" : "Plus fortes hausses d'abord";
+	else btn.textContent = sortAsc ? "De A à Z" : "De Z à A";
 }
 
 function onToggleSelect(e) {
@@ -873,105 +1390,156 @@ dateProd: r.date_prod || ""
 return points;
 }
 
+// Motif hachuré pour la zone provisoire
+function hatchPattern(ctx) {
+	const c = document.createElement("canvas");
+	c.width = 8;
+	c.height = 8;
+	const g = c.getContext("2d");
+	g.fillStyle = "#ffffff";
+	g.fillRect(0, 0, 8, 8);
+	g.strokeStyle = "#dfe6e3";
+	g.lineWidth = 1.5;
+	g.beginPath();
+	g.moveTo(0, 8);
+	g.lineTo(8, 0);
+	g.stroke();
+	return ctx.createPattern(c, "repeat");
+}
+
 async function updateChart() {
-const sub = document.getElementById("chartSub");
-if (selected.size === 0) {
-sub.textContent = "Coche une ou plusieurs stations dans le tableau pour afficher leur historique sur la période sélectionnée.";
-if (chartInstance) {
-chartInstance.destroy();
-chartInstance = null;
-}
-return;
-}
-const dateDebut = lastDateDebut;
-const dateFin = lastDateFin;
-sub.textContent = "Chargement de l'historique…";
+	const sub = document.getElementById("chartSub");
+	if (selected.size === 0) {
+		sub.textContent = "Coche une ou plusieurs stations dans la liste (ou clique sur la carte) pour afficher leur historique sur la période sélectionnée.";
+		if (chartInstance) {
+			chartInstance.destroy();
+			chartInstance = null;
+		}
+		return;
+	}
+	const dateDebut = lastDateDebut;
+	const dateFin = lastDateFin;
+	sub.textContent = "Chargement de l'historique…";
 
-const codes = Array.from(selected);
-const histories = await Promise.all(codes.map(c => fetchHistory(c, dateDebut, dateFin)));
+	const codes = Array.from(selected);
+	const histories = await Promise.all(codes.map(c => fetchHistory(c, dateDebut, dateFin)));
 
-const allDates = Array.from(new Set(histories.flat().map(p => p.date))).sort();
-const datasets = codes.map((code, i) => {
-const ref = stationsRefByCode[code];
-const byDate = {};
-histories[i].forEach(p => byDate[p.date] = p.value);
-return {
-label: `${
-ref ? ref.libelle_cours_eau : code
-} (${
-ref ? ref.libelle_commune : ''
-})`,
-data: allDates.map(d => byDate[d] ?? null),
-borderColor: COLORS[i % COLORS.length],
-backgroundColor: COLORS[i % COLORS.length],
-spanGaps: true,
-tension: 0.25,
-pointRadius: 2
-};
+	const allDates = Array.from(new Set(histories.flat().map(p => p.date))).sort();
+	const datasets = codes.map((code, i) => {
+		const ref = stationsRefByCode[code];
+		const byDate = {};
+		histories[i].forEach(p => byDate[p.date] = p);
+		const color = COLORS[i % COLORS.length];
+		// Mesure validée : point plein. Mesure non qualifiée : point creux.
+		const valide = d => byDate[d] && /^bonne/i.test(byDate[d].qualif);
+		return {
+			label: `${ref ? ref.libelle_cours_eau : code} (${ref ? ref.libelle_commune : ''})`,
+			data: allDates.map(d => byDate[d] ? byDate[d].value : null),
+			borderColor: color,
+			backgroundColor: color,
+			pointBackgroundColor: allDates.map(d => valide(d) ? color : "#ffffff"),
+			pointBorderColor: color,
+			pointBorderWidth: 2,
+			pointRadius: allDates.map(d => valide(d) ? 3 : 4),
+			spanGaps: true,
+			tension: 0.25
+		};
+	});
+
+	const showAverage = document.getElementById("showAverage").checked;
+	if (showAverage && datasets.length > 1) {
+		const avgData = allDates.map((d, i) => {
+			const vals = datasets.map(ds => ds.data[i]).filter(v => v !== null && v !== undefined);
+			if (! vals.length) return null;
+			return vals.reduce((a, b) => a + b, 0) / vals.length;
+		});
+		datasets.push({
+			label: "Moyenne de la sélection",
+			data: avgData,
+			borderColor: "#111827",
+			borderDash: [6, 4],
+			borderWidth: 3,
+			pointRadius: 0,
+			tension: 0.25
+		});
+	}
+
+	if (chartInstance) chartInstance.destroy();
+
+	const provStart = fmtDate(new Date(Date.now() - 3 * 86400000));
+	const provPlugin = {
+		id: "zoneProvisoire",
+		beforeDatasetsDraw(chart) {
+			const labels = chart.data.labels;
+			const i = labels.findIndex(d => d >= provStart);
+			if (i < 0) return;
+			const {ctx, chartArea, scales} = chart;
+			const x = scales.x;
+			const demi = labels.length > 1 ? (x.getPixelForValue(1) - x.getPixelForValue(0)) / 2 : 0;
+			const left = i === 0 ? chartArea.left : Math.max(chartArea.left, x.getPixelForValue(i) - demi);
+			ctx.save();
+			ctx.fillStyle = hatchPattern(ctx);
+			ctx.fillRect(left, chartArea.top, chartArea.right - left, chartArea.bottom - chartArea.top);
+			ctx.fillStyle = "#5b6b68";
+			ctx.font = "11px Inter, sans-serif";
+			ctx.fillText("provisoire", left + 6, chartArea.top + 14);
+			ctx.restore();
+		}
+	};
+
+	chartInstance = new Chart(document.getElementById("chart"), {
+		type: 'line',
+		data: {labels: allDates, datasets},
+		options: {
+			responsive: true,
+			maintainAspectRatio: false,
+			scales: {
+				y: {title: {display: true, text: 'Débit (L/s)'}}
+			},
+			plugins: {legend: {position: 'bottom'}}
+		},
+		plugins: [provPlugin]
+	});
+	sub.textContent = `Débit journalier du ${fmtLong(dateDebut)} au ${fmtLong(dateFin)}.`;
+}
+
+document.getElementById("sortKey").addEventListener('change', e => {
+	sortKey = e.target.value;
+	sortAsc = true;
+	renderTable();
 });
-
-const showAverage = document.getElementById("showAverage").checked;
-if (showAverage && datasets.length > 1) {
-const avgData = allDates.map((d, i) => {
-const vals = datasets.map(ds => ds.data[i]).filter(v => v !== null && v !== undefined);
-if (! vals.length) 
-return null;
-
-return vals.reduce((a, b) => a + b, 0) / vals.length;
+document.getElementById("btnSortDir").addEventListener('click', () => {
+	sortAsc = ! sortAsc;
+	renderTable();
 });
-datasets.push({
-label: "Moyenne de la sélection",
-data: avgData,
-borderColor: "#111827",
-borderDash: [
-6, 4
-],
-borderWidth: 3,
-pointRadius: 0,
-tension: 0.25
+document.querySelectorAll('[data-period]').forEach(b => {
+	b.addEventListener('click', () => {
+		const m = b.getAttribute('data-period');
+		if (m === "custom") {
+			setPeriodPressed("custom");
+			document.getElementById("dateDebut").focus();
+			return;
+		}
+		setPeriodDays(parseInt(m, 10));
+		setPeriodPressed(m);
+		actualiser();
+	});
 });
-}
-
-if (chartInstance) 
-chartInstance.destroy();
-
-chartInstance = new Chart(document.getElementById("chart"), {
-type: 'line',
-data: {
-labels: allDates,
-datasets
-},
-options: {
-responsive: true,
-maintainAspectRatio: false,
-scales: {
-y: {
-title: {
-display: true,
-text: 'Débit (L/s)'
-}
-}
-},
-plugins: {
-legend: {
-position: 'bottom'
-}
-}
-}
+["dateDebut", "dateFin"].forEach(id => document.getElementById(id).addEventListener('change', syncPeriodButtons));
+document.getElementById("fltDeclines").addEventListener('click', e => {
+	onlyDeclines = ! onlyDeclines;
+	e.currentTarget.setAttribute('aria-pressed', onlyDeclines ? "true" : "false");
+	renderTable();
+	renderMap(mapRows());
 });
-sub.textContent = `Débit journalier du ${dateDebut} au ${dateFin}.`;
-}
-
-document.querySelectorAll('th[data-sort]').forEach(th => {
-th.addEventListener('click', () => {
-const key = th.getAttribute('data-sort');
-if (sortKey === key) 
-sortAsc = ! sortAsc;
- else {
-sortKey = key;
-sortAsc = true;
-} renderTable();
+document.getElementById("fltHideFlagged").addEventListener('click', e => {
+	hideFlagged = ! hideFlagged;
+	e.currentTarget.setAttribute('aria-pressed', hideFlagged ? "true" : "false");
+	renderTable();
+	renderMap(mapRows());
 });
+document.getElementById("btnSeeChart").addEventListener('click', () => {
+	document.getElementById("chartPanel").scrollIntoView({behavior: "smooth"});
 });
 document.getElementById("search").addEventListener('input', () => {
 renderTable();
@@ -1053,6 +1621,12 @@ document.getElementById("riverFilter").value = "";
 document.getElementById("search").value = "";
 selected.clear();
 document.getElementById("showAverage").checked = false;
+onlyDeclines = false;
+hideFlagged = false;
+document.getElementById("fltDeclines").setAttribute('aria-pressed', "false");
+document.getElementById("fltHideFlagged").setAttribute('aria-pressed', "false");
+sortKey = "variation";
+sortAsc = true;
 initDates();
 actualiser();
 });
