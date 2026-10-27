@@ -2,7 +2,7 @@
 
 Un outil en ligne de commande et un tableau de bord interactif pour suivre l'évolution du débit des rivières françaises, à partir des données publiques [Hub'Eau](https://hubeau.eaufrance.fr/).
 
-Projet né pendant la canicule de juillet 2026, en observant l'assèchement de l'Allan à Montbéliard — et l'occasion de construire une première vraie pratique autonome de Python (data/pandas), après une reconversion PHP/Symfony → data.
+Projet né pendant la canicule de juillet 2026, en observant l'assèchement de l'Allan à Montbéliard, et occasion de pratiquer Python (data/pandas) après une reconversion PHP/Symfony vers la data.
 
 ![Aperçu du dashboard](docs/screenshot-dashboard.png)
 
@@ -14,15 +14,17 @@ Projet né pendant la canicule de juillet 2026, en observant l'assèchement de l
 - nettoie les données (débits négatifs, révisions dupliquées)
 - calcule la variation de débit par station entre les deux dates
 - affiche un rapport (stats descriptives, top 10 des plus fortes baisses)
-- exporte les données pour le dashboard
+- exporte le référentiel des stations pour le dashboard (`stations_ref.js`)
 
-**`dashboard.html`** — un tableau de bord interactif (HTML/JS autonome, sans serveur) qui :
+**`dashboard.html`** — un tableau de bord interactif (un seul fichier HTML/JS, sans framework ni build) qui :
 
-- affiche une carte de France colorée selon la variation de débit (dégradé + forme distincte pour l'accessibilité)
+- affiche une carte de France colorée selon la variation de débit (dégradé + forme distincte pour l'accessibilité), avec zoom par Ctrl + molette
+- propose une période en boutons (7 jours, 30 jours, personnalisée) et des chiffres clés (stations calculées, baisses de 50 % ou plus)
 - interroge l'API Hub'Eau en direct pour une période choisie dynamiquement
-- permet de sélectionner des stations (sur la carte ou dans un tableau triable/filtrable) et de comparer leur historique sur un graphique
+- permet de sélectionner des stations (sur la carte ou dans la liste, avec recherche, filtre par rivière et tri) et de comparer leur historique sur un graphique
 - exporte les données sélectionnées en CSV
 - renvoie vers les fiches officielles (Vigicrues, HydroPortail) pour chaque station
+- signale les stations dont le débit du jour de fin est nul mais non qualifié par Hub'Eau
 
 ## Aperçu
 
@@ -37,14 +39,14 @@ _Tableau triable/filtrable, sélection synchronisée avec la carte_
 
 ## Installation
 
-Prérequis : Python 3.10+
+Prérequis : Python 3.11 ou plus (testé avec 3.13)
 
 ```bash
 git clone <url-du-repo>
-cd csv-analyzer
+cd hydro-observatoire
 python -m venv venv
 .\venv\Scripts\Activate.ps1      # Windows PowerShell
-pip install pandas
+pip install -r requirements.txt
 ```
 
 ## Utilisation
@@ -58,6 +60,8 @@ Invoke-WebRequest -Uri "https://hubeau.eaufrance.fr/api/v2/hydrometrie/obs_elab.
 
 (Le référentiel des stations, `toutes_stations.csv`, est déjà inclus dans le repo — pas besoin de le retélécharger sauf si tu veux des données à jour.)
 
+Limite connue : `toutes_stations.csv` contient 6 000 stations, alors que le référentiel Hub'Eau en comptait 6 525 le 27 octobre 2026 (le téléchargement semble s'être arrêté à `size=6000`). Les stations manquantes n'apparaissent donc pas sur la carte. [À COMPLÉTER : commande de téléchargement du référentiel utilisée à l'origine]
+
 ### 2. Lancer l'analyse
 
 ```powershell
@@ -66,18 +70,26 @@ python analyse.py jour_debut.csv jour_fin.csv --date-debut 2026-07-08 --date-fin
 
 ### 3. Ouvrir le dashboard
 
-Double-clique sur `dashboard.html` — il fonctionne directement dans le navigateur, sans serveur, et interroge l'API Hub'Eau en direct pour la période de ton choix.
+Le dashboard n'a pas besoin de la partie Python : il lit `stations_ref.js` (même dossier) et interroge l'API Hub'Eau en direct. Le plus fiable est de le servir en local :
+
+```powershell
+python -m http.server 8000
+```
+
+puis d'ouvrir `http://localhost:8000/dashboard.html`. L'ouverture directe du fichier peut être bloquée selon le navigateur ou ses extensions.
 
 ## Stack technique
 
 - **Python** / **pandas** — nettoyage, jointures, agrégation
-- **JavaScript vanilla** / **Leaflet** (carte) / **Chart.js** (graphiques) — pas de framework, pas de build, un seul fichier HTML autonome
+- **JavaScript vanilla** / **Leaflet** 1.9.4 (carte) / **Chart.js** 4.4.4 (graphiques), chargés depuis un CDN — pas de framework, pas de build, un seul fichier HTML
 - **API Hub'Eau** (Ministère de la Transition écologique) — source des données
 
 ## Méthodologie et limites
 
 - Le "% de variation" affiché est un **indicateur exploratoire maison**, calculé sur la période choisie. Il ne correspond **pas** aux seuils réglementaires officiels de sécheresse (DSA/DAR/DCR), qui reposent sur des débits seuils absolus propres à chaque station, définis par arrêté préfectoral. Pour un suivi officiel : [VigiEau](https://vigieau.gouv.fr).
-- Les mesures avec une qualification "douteuse" ou "incertaine" côté Hub'Eau sont exclues du calcul.
+- Les mesures qualifiées "douteuse", "incertaine" ou "mauvaise" par Hub'Eau sont exclues du calcul, dans `analyse.py` comme dans le dashboard. Les mesures "non qualifiée" sont conservées ; sur le graphique, elles sont dessinées en points creux.
+- Un débit nul le jour de fin avec une mesure non qualifiée est signalé ("Débit nul non validé") mais pas exclu : il peut être corrigé par Hub'Eau quelques jours plus tard.
+- Les stations absentes du référentiel local (`toutes_stations.csv`) n'ont pas de coordonnées et sont ignorées ; `analyse.py` en affiche le nombre.
 - Les données très récentes (< 3 jours environ) sont souvent encore en cours de validation côté Hub'Eau et peuvent être incomplètes.
 
 ## Quelques problèmes réels rencontrés (et corrigés)
