@@ -10,7 +10,7 @@ Utilisation :
     python analyse.py fichier_debut.csv fichier_fin.csv --date-debut AAAA-MM-JJ --date-fin AAAA-MM-JJ
 
 Exemple :
-    python analyse.py jour_debut.csv jour_fin.csv --date-debut 2026-07-08 --date-fin 2026-07-16
+    python analyse.py jour_debut.csv jour_fin.csv --date-debut 2026-07-08 --date-fin 2026-07-15
 
 Les deux fichiers CSV s'obtiennent via l'API Hub'Eau, par exemple :
     Invoke-WebRequest -Uri "https://hubeau.eaufrance.fr/api/v2/hydrometrie/obs_elab.csv?grandeur_hydro_elab=QmnJ&date_debut_obs_elab=AAAA-MM-JJ&date_fin_obs_elab=AAAA-MM-JJ&size=6000" -OutFile "jour_debut.csv"

@@ -42,7 +42,7 @@ _Tableau triable/filtrable, sélection synchronisée avec la carte_
 Prérequis : Python 3.11 ou plus (testé avec 3.13)
 
 ```bash
-git clone <url-du-repo>
+git clone https://github.com/raphael25200/hydro-observatoire.git
 cd hydro-observatoire
 python -m venv venv
 .\venv\Scripts\Activate.ps1      # Windows PowerShell
@@ -55,7 +55,7 @@ pip install -r requirements.txt
 
 ```powershell
 Invoke-WebRequest -Uri "https://hubeau.eaufrance.fr/api/v2/hydrometrie/obs_elab.csv?grandeur_hydro_elab=QmnJ&date_debut_obs_elab=2026-07-08&date_fin_obs_elab=2026-07-08&size=6000" -OutFile "jour_debut.csv"
-Invoke-WebRequest -Uri "https://hubeau.eaufrance.fr/api/v2/hydrometrie/obs_elab.csv?grandeur_hydro_elab=QmnJ&date_debut_obs_elab=2026-07-16&date_fin_obs_elab=2026-07-16&size=6000" -OutFile "jour_fin.csv"
+Invoke-WebRequest -Uri "https://hubeau.eaufrance.fr/api/v2/hydrometrie/obs_elab.csv?grandeur_hydro_elab=QmnJ&date_debut_obs_elab=2026-07-15&date_fin_obs_elab=2026-07-15&size=6000" -OutFile "jour_fin.csv"
 ```
 
 (Le référentiel des stations, `toutes_stations.csv`, est déjà inclus dans le repo — pas besoin de le retélécharger sauf si tu veux des données à jour.)
@@ -71,7 +71,7 @@ Invoke-WebRequest -Uri "https://hubeau.eaufrance.fr/api/v2/hydrometrie/referenti
 ### 2. Lancer l'analyse
 
 ```powershell
-python analyse.py jour_debut.csv jour_fin.csv --date-debut 2026-07-08 --date-fin 2026-07-16
+python analyse.py jour_debut.csv jour_fin.csv --date-debut 2026-07-08 --date-fin 2026-07-15
 ```
 
 ### 3. Ouvrir le dashboard
