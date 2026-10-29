@@ -96,6 +96,7 @@ puis d'ouvrir `http://localhost:8000/dashboard.html`. L'ouverture directe du fic
 - Les mesures qualifiées "douteuse", "incertaine" ou "mauvaise" par Hub'Eau sont exclues du calcul, dans `analyse.py` comme dans le dashboard. Les mesures "non qualifiée" sont conservées ; sur le graphique, elles sont dessinées en points creux.
 - Un débit nul le jour de fin avec une mesure non qualifiée est signalé ("Débit nul non validé") mais pas exclu : il peut être corrigé par Hub'Eau quelques jours plus tard.
 - Les stations absentes du référentiel local (`toutes_stations.csv`) n'ont pas de coordonnées et sont ignorées ; `analyse.py` en affiche le nombre.
+- La carte est limitée à la France métropolitaine. Les stations d'outre-mer restent dans le tableau et le graphique, mais ne sont pas accessibles depuis la carte.
 - Les données très récentes (< 3 jours environ) sont souvent encore en cours de validation côté Hub'Eau et peuvent être incomplètes.
 
 ## Quelques problèmes réels rencontrés (et corrigés)
@@ -109,6 +110,10 @@ Pour la transparence — et parce que ça fait partie de l'apprentissage :
 ## Licence des données
 
 Données Hub'Eau sous [licence ouverte Etalab 2.0](https://github.com/etalab/licence-ouverte/blob/master/LO.md).
+
+## Licence
+
+Le code de ce dépôt est distribué sous licence MIT (voir le fichier `LICENSE`). Les données Hub'Eau restent sous licence ouverte Etalab 2.0.
 
 ## Auteur
 
