@@ -4,7 +4,7 @@ Un outil en ligne de commande et un tableau de bord interactif pour suivre l'év
 
 Projet né pendant la canicule de juillet 2026, en observant l'assèchement de l'Allan à Montbéliard, et occasion de pratiquer Python (data/pandas) après une reconversion PHP/Symfony vers la data.
 
-![Aperçu du dashboard](docs/screenshot-dashboard.png)
+![Aperçu du dashboard](docs/screenshot-dashboard.webp)
 
 ## Ce que ça fait
 
@@ -28,13 +28,13 @@ Projet né pendant la canicule de juillet 2026, en observant l'assèchement de l
 
 ## Aperçu
 
-![Détail d'une station sur la carte](docs/screenshot-dashboard-2.png)
+![Détail d'une station sur la carte](docs/screenshot-dashboard-2.webp)
 _Carte interactive avec dégradé de couleur selon la variation de débit_
 
-![Comparaison de plusieurs stations](docs/screenshot-dashboard-3.png)
+![Comparaison de plusieurs stations](docs/screenshot-dashboard-3.webp)
 _Graphique d'historique, plusieurs stations superposées_
 
-![Tableau et sélection de stations](docs/screenshot-dashboard-4.png)
+![Tableau et sélection de stations](docs/screenshot-dashboard-4.webp)
 _Tableau triable/filtrable, sélection synchronisée avec la carte_
 
 ## Installation
