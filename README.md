@@ -60,7 +60,7 @@ Invoke-WebRequest -Uri "https://hubeau.eaufrance.fr/api/v2/hydrometrie/obs_elab.
 
 (Le référentiel des stations, `toutes_stations.csv`, est déjà inclus dans le repo — pas besoin de le retélécharger sauf si tu veux des données à jour.)
 
-Limite connue : le `toutes_stations.csv` versionné contient 6 000 stations, alors que le référentiel Hub'Eau en comptait 6 525 le 27 octobre 2026. Il faut un `size` supérieur à 6000 pour le récupérer en entier :
+Le `toutes_stations.csv` versionné contient les 6 525 stations du référentiel Hub'Eau (état du 29 octobre 2026). Pour le mettre à jour, utiliser la commande suivante :
 
 ```powershell
 Invoke-WebRequest -Uri "https://hubeau.eaufrance.fr/api/v2/hydrometrie/referentiel/stations.csv?size=10000" -OutFile "toutes_stations.csv"
